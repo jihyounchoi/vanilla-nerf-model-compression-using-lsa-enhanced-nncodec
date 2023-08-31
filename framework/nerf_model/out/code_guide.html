@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <title>&ast;&ast;run&lowbar;nerf&period;py&ast;&ast;</title>
+        <style>
+/* From extension vscode.github */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.vscode-dark img[src$=\#gh-light-mode-only],
+.vscode-light img[src$=\#gh-dark-mode-only] {
+	display: none;
+}
+
+</style>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex/dist/katex.min.css">
+<link href="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.css" rel="stylesheet" type="text/css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        <style>
+.task-list-item {
+    list-style-type: none;
+}
+
+.task-list-item-checkbox {
+    margin-left: -20px;
+    vertical-align: middle;
+    pointer-events: none;
+}
+</style>
+        
+    </head>
+    <body class="vscode-body vscode-light">
+        <h1 id="run_nerfpy"><strong>run_nerf.py</strong></h1>
+<h2 id="1-함수-간의-포함-관계"><strong>1. 함수 간의 포함 관계</strong></h2>
+<ul>
+<li>
+<p>batchity_rays</p>
+<ul>
+<li>render_rays
+<ul>
+<li>raw2output</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>render_path</p>
+<ul>
+<li>render</li>
+</ul>
+</li>
+</ul>
+<h2 id="2-각각의-함수에-대한-설명"><strong>2. 각각의 함수에 대한 설명</strong></h2>
+<h3 id="batchify_rays"><strong>batchify_rays</strong></h3>
+<p>ray들을 batch 단위로 잘라, OOM을 방지하고자 하는 목적</p>
+<h3 id="render_rays"><strong>render_rays</strong></h3>
+<p>batch 단위의 ray들에 대해 volumetric rendering을 수행하는 함수</p>
+<h4 id="input"><strong>Input</strong></h4>
+<ol>
+<li>ray_batch : batchify_ray를 통해 가져옴. batch 단위의 ray</li>
+<li>network_fn, network_fine : coarse &amp; fine networks</li>
+<li>N_samples : 각각의 ray에서 sampling하고자 하는 지점의 개수<br>
+...etc</li>
+</ol>
+<h4 id="output"><strong>Output</strong></h4>
+<blockquote>
+<p>~_map : fine network의 출력 / ~0 : coarse network의 출력</p>
+</blockquote>
+<ol>
+<li>rgb_map : [num_rays, 3]. 각 ray마다 1개의 rgb 값을 가짐.</li>
+<li>disp_map : [num_rays]. scalar, 불투명도, 밀도의 역수와 동일.</li>
+<li>acc_map : [num_rays]. scalar. ray에 대해 누적된 밀도값</li>
+<li>raw : [num_rays, num_samples, 4]. 모델의 raw output. 각 ray마다 N 개의 sample을 가지고, 각 sample 별로 RGB &amp; Density를 계산한다.</li>
+<li>rgb0 : See rgb_map. Output for coarse model.</li>
+<li>disp0 : See disp_map. Output for coarse model.</li>
+<li>acc0 : See acc_map. Output for coarse model.</li>
+<li>z_std : [num_rays]. Standard deviation of distances along ray for each sample.</li>
+</ol>
+<br>
+<ol>
+<li>
+<p>ray_batch의 값들을 통해 N_rays, rays_o, rays_d, viewdirs, near, far의 여러 값들을 추출한다.</p>
+</li>
+<li>
+<p>stratified sampling을 위해 N_sample 개수만큼의 random sampling을 수행하고,
+이를 통해 sampling을 수행할 pts들을 추출</p>
+<pre><code class="language-python">pts = rays_o[...,<span class="hljs-literal">None</span>,:] + rays_d[...,<span class="hljs-literal">None</span>,:] * z_vals[...,:,<span class="hljs-literal">None</span>] <span class="hljs-comment"># [N_rays, N_samples, 3]</span>
+</code></pre>
+</li>
+<li>
+<p>network_fn에 위의 값들 (pts, viewdirs, network_fn)을 입력으로 넣어 query를 진행하고,
+해당 값을 <a href="#raw2outputs">raw2output</a> 함수를 통해 rich format으로 변환</p>
+</li>
+<li>
+<p>결과를 return</p>
+</li>
+</ol>
+<h3 id="raw2outputs"><strong>raw2outputs</strong></h3>
+<blockquote>
+<p>model의 raw output + {z_val, rays_d} 정보를 통해
+rgb, disparity, accuracy, weight, depth 정보로 변환</p>
+</blockquote>
+<hr>
+<h3 id="render_path"><strong>render_path</strong></h3>
+<p>내부적으로 render 함수를 사용</p>
+<h3 id="render"><strong>render</strong></h3>
+<pre><code>Input
+  H: int. Height of image in pixels.
+  W: int. Width of image in pixels.
+  focal: float. Focal length of pinhole camera.
+  chunk: int. Maximum number of rays to process simultaneously. Used to
+    control maximum memory usage. Does not affect final results.
+  rays: array of shape [2, batch_size, 3]. Ray origin and direction for
+    each example in batch.
+  c2w: array of shape [3, 4]. Camera-to-world transformation matrix.
+  ndc: bool. If True, represent ray origin, direction in NDC coordinates.
+  near: float or array of shape [batch_size]. Nearest distance for a ray.
+  far: float or array of shape [batch_size]. Farthest distance for a ray.
+  use_viewdirs: bool. If True, use viewing direction of a point in space in model.
+  c2w_staticcam: array of shape [3, 4]. If not None, use this transformation matrix for 
+   camera while using other c2w argument for viewing directions.
+Returns:
+  rgb_map: [batch_size, 3]. Predicted RGB values for rays.
+  disp_map: [batch_size]. Disparity map. Inverse of depth.
+  acc_map: [batch_size]. Accumulated opacity (alpha) along a ray.
+  extras: dict with everything returned by render_rays().
+</code></pre>
+<h4 id="input-1"><strong>Input</strong></h4>
+<ol>
+<li>H, W : image의 크기</li>
+<li>focal : pinhole camera 를 가정하였을 때의 초점거리</li>
+<li>chunk : ray processing을 한번에 수행하는 단위 (일종의 내부적인 batch)</li>
+<li>ray : ray origin (x, y, z), direction(<span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>θ</mi></mrow><annotation encoding="application/x-tex">\theta</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.6944em;"></span><span class="mord mathnormal" style="margin-right:0.02778em;">θ</span></span></span></span>, <span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>π</mi></mrow><annotation encoding="application/x-tex">\pi</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.4306em;"></span><span class="mord mathnormal" style="margin-right:0.03588em;">π</span></span></span></span>) 로 이루어진 ray 정보</li>
+<li>c2w : camera-to-world의 transformation matrix, 하나의 matrix를 공통적으로 사용</li>
+<li>near, far : ray의 nearest, farthest point 정보. batch_size 만큼의 개수가 존재</li>
+</ol>
+<h4 id="output-1"><strong>Output</strong></h4>
+<ol>
+<li>rgb_map : ray 마다의 rgb 값</li>
+<li>disp_map : ray 마다의 disparity 값</li>
+<li>acc_map : ray 마다의 accumulated opacity</li>
+<li>extras : render_ray에서의 값에 대한 여러 반환값들을 dictionary 형태로 정리한 것</li>
+</ol>
+
+        <script async src="https://cdn.jsdelivr.net/npm/katex-copytex@latest/dist/katex-copytex.min.js"></script>
+        
+    </body>
+    </html>
