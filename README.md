@@ -14,8 +14,13 @@
 
 ---
 
-
 ## **코드 실행 방법**
+
+**메인 코드는 `compress_nerf.py` 이며, 이를 실행하는 방법은 다음과 같습니다.**
+
+1. NNCodec과 vanilla-nerf에 필요한 package를 모두 install 합니다.
+2. 용량 문제로 인해 framework/nerf_model/data 폴더가 비어 있습니다. 해당 데이터를 내려받기 위해 download_nerf_data.sh를 실행합니다.
+3. `main.sh`를 통해 `compress_nerf.py`를 실행합니다.
 
 **패키지 내부의 파일들은 다음과 같습니다.**
 
@@ -26,13 +31,6 @@
 5. `utils.py` : NNCodec에 NeRF 모델을 입력하기 전과 후 과정에, 모델 구조 변환 및 기타 역할을 수행하는 모듈입니다.
 
 <br>
-
-**메인 코드는 `compress_nerf.py` 이며, 이를 실행하는 방법은 다음과 같습니다.**
-
-1. NNCodec과 vanilla-nerf에 필요한 package를 모두 install 합니다.
-2. 용량 문제로 인해 framework/nerf_model/data 폴더가 비어 있습니다. 해당 데이터를 내려받기 위해 download_nerf_data.sh를 실행합니다.
-3. `conda activate nnc`를 통해 가상환경을 활성화합니다.  
-4. `/nerf_lsa`에 저장된 Shell script (`main.sh`)를 통해 `compress_nerf.py`를 실행합니다.
    
 <br>
 
