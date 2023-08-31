@@ -1,5 +1,3 @@
-# vanilla-nerf-model-compression-using-lsa-enhanced-nncodec
-
 # **NeRF + LSA**
 
 현재 공개된 버전의 NNCodec은 LSA를 적용 가능한 모델이 Classification Task로 국한되어 있습니다.  
