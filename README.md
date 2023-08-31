@@ -29,9 +29,10 @@
 
 **메인 코드는 `compress_nerf.py` 이며, 이를 실행하는 방법은 다음과 같습니다.**
 
-1. 용량 문제로 인해 framework/nerf_model/data 폴더가 비어 있습니다. 해당 데이터를 내려받기 위해 download_nerf_data.sh를 실행합니다.
-1. `conda activate nnc`를 통해 가상환경을 활성화합니다.  
-2. `/nerf_lsa`에 저장된 Shell script (`main.sh`)를 통해 `compress_nerf.py`를 실행합니다.
+1. NNCodec과 vanilla-nerf에 필요한 package를 모두 install 합니다.
+2. 용량 문제로 인해 framework/nerf_model/data 폴더가 비어 있습니다. 해당 데이터를 내려받기 위해 download_nerf_data.sh를 실행합니다.
+3. `conda activate nnc`를 통해 가상환경을 활성화합니다.  
+4. `/nerf_lsa`에 저장된 Shell script (`main.sh`)를 통해 `compress_nerf.py`를 실행합니다.
    
 <br>
 
