@@ -1,5 +1,7 @@
 # **NeRF + LSA**
 
+> English version of readme will be available shortly
+
 현재 공개된 버전의 NNCodec은 LSA를 적용 가능한 모델이 Classification Task로 국한되어 있습니다.  
 (특히 ImageNet에 한정되어 있으나, 이는 내부 코드에 약간의 수정을 거치면 변경 가능합니다).  
 
