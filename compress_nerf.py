@@ -67,22 +67,22 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="NeRF Processing Script")
     
     # Common Parameters
-    parser.add_argument('--ckpt_path', type=str, default="/home/gbang/jihyoun/NeRF/nerf-pytorch/logs_backup/blender_paper_lego/200000.tar", help="Path to checkpoint file.")
+    parser.add_argument('--ckpt_path', type=str, default="/home/gbang/jihyoun/NeRF/nerf_lsa/model_zoo/blender_paper_lego/lego_200000.tar", help="Path to checkpoint file.")
     parser.add_argument('--ckpt_nickname', default = 'lego_200K', type=str, help="Nickname Of Checkpoint, like lego-200000, ...")
-    parser.add_argument('--base_path_to_save', type=str, default='/home/gbang/jihyoun/NeRF/test_nerf', help="Base path to save.")
+    parser.add_argument('--base_path_to_save', type=str, default='/home/gbang/jihyoun/NeRF/nerf_lsa', help="Base path to save.")
     parser.add_argument('--qp', type=int, default=-15, help="Quantization Parameter.")
     
     # LSA-Related Parameters
     parser.add_argument('--lsa', type=bool, default=True, help="Use LSA or not.") # Should be True
     parser.add_argument('--epochs', type=int, default=2, help="Number of epochs.")
-    parser.add_argument('--learning_rate', type=float, default = 1., help="Learning rate.")
+    parser.add_argument('--learning_rate', type=float, default = 0.0001, help="Learning rate.")
     
     # Added Parameters for NeRF-LSA
     parser.add_argument('--task_type', type=str, default='NeRF', help="Task type. Classification or NeRF Available") # Classification or NeRF
     parser.add_argument('--dataset_type', type=str, default='blender', help="Dataset type.") # blender or llff
-    parser.add_argument('--N_iters', type=int, default = 10, help="Number of iterations.") # Number of iteration of each epoch
-    parser.add_argument('--learning_rate_decay', type=float, default=0.0, help="Learning rate decay.") # learning rate decay after each epoch finished
-    parser.add_argument('--i_save', type=int, default=0, help="Interval for saving.") # Saving interval (iterations)
+    parser.add_argument('--N_iters', type=int, default = 20000, help="Number of iterations.") # Number of iteration of each epoch
+    parser.add_argument('--learning_rate_decay', type=float, default=0.5, help="Learning rate decay.") # learning rate decay after each epoch finished
+    parser.add_argument('--i_save', type=int, default=10000, help="Interval for saving.") # Saving interval (iterations)
     
     # Only Necessary for Classification Task (NOT for NeRF)
     parser.add_argument('--dataset_path', type=str, default='~', help="Path to dataset.")

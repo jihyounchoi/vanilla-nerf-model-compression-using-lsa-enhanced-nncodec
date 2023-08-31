@@ -2,15 +2,15 @@
 
 set -e
 
-CKPT_PATH="/home/gbang/jihyoun/NeRF/test_nerf/model_zoo/llff_fern/fern_200000.tar"
-CKPT_NICKNAME='fern_200K'
-BASE_PATH_TO_SAVE='/home/gbang/jihyoun/NeRF/test_nerf'
+CKPT_PATH="/home/gbang/jihyoun/NeRF/nerf_lsa/model_zoo/blender_paper_lego/lego_200000.tar"
+CKPT_NICKNAME='lego_200K'
+BASE_PATH_TO_SAVE='/home/gbang/jihyoun/NeRF/nerf_lsa'
 DATASET_PATH='~'
 
 cd /home/gbang/jihyoun/NeRF/test_nerf
 # nvidia-smi --query-compute-apps=pid,process_name --format=csv,noheader | grep python | awk -F ',' '{print $1}' | xargs -I{} kill -9 {}
 
-CUDA_VISIBLE_DEVICES=0 python /home/gbang/jihyoun/NeRF/test_nerf/compress_nerf.py \
+CUDA_VISIBLE_DEVICES=0 python /home/gbang/jihyoun/NeRF/nerf_lsa/compress_nerf.py \
     --ckpt_path $CKPT_PATH \
     --ckpt_nickname $CKPT_NICKNAME \
     --base_path_to_save $BASE_PATH_TO_SAVE \

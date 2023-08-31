@@ -15,15 +15,22 @@
 
 ## **코드 실행 방법**
 
-**NeRF + LSA 코드 실행과 결과 저장, 모델 평가에 필요한 디렉토리들은 다음과 같습니다.**
+**NeRF + LSA 코드 실행과 결과 저장, 모델 평가에 필요한 패키지들은 `/home/gbang/jihyoun/NeRF/nerf_lsa` 에 모여 있으며, 이들의 역할은 다음과 같습니다.**
 
-1. "/home/gbang/anaconda3/envs/nnc/lib/python3.11/site-packages" 아래의 `/nnc`, `/nnc_core`, `/framework` : NNCodec을 구성하는 세 package 들입니다.
-2. `/home/gbang/jihyoun/NeRF` : /test_nerf에 모델 실행과 결과 저장에 관련된 코드와 폴더들이 존재합니다. /nerf-pytorch는 nerf-pytorch의 원본 코드이며, NNCodec에 의해 변환이 완료된 모델에 대한 성능 측정, 호환성 확인 등을 위해 존재합니다.
+1. `/nnc`, `/nnc_core`, `/framework` : NNCodec을 구성하는 세 package 들입니다. NeRF + LSA의 동작을 위해 원본 NNCodec에 비해 상당 부분 수정되었으며, 이에 대한 설명은 [부록) 코드 구조](#코드-구조) 에서 확인 가능합니다.
+2. `compress_nerf.py` : 메인 코드입니다. 사용법은 아래에서 확인 가능합니다.
+3. `main.sh` : compress_nerf.py를 실행하는 shell script 파일입니다.
+4. `/results` : 결과값을 저장하는 백업 폴더입니다. compress_nerf.py의 `base_path_to_save` 변수를 해당 폴더로 지정하는 경우, `/results` 폴더에 자동으로 저장됩니다.
+5. `utils.py` : NNCodec에 NeRF 모델을 입력하기 전과 후 과정에, 모델 구조 변환 및 기타 역할을 수행하는 모듈입니다.
+
+추가로 NeRF 폴더에 존재하는 nerf-pytorch 코드는 github에 존재하는 nerf-pytorch 원본 코드이며, nerf_lsa를 통해 생성된 모델을 입력하여 원활하게 동작하는지를 확인하기 위해 사용됩니다.
+
+<br>
 
 **메인 코드는 `compress_nerf.py` 이며, 이를 실행하는 방법은 다음과 같습니다.**
 
 1. `conda activate nnc`를 통해 가상환경을 활성화합니다.  
-2. `"/home/gbang/jihyoun/NeRF/test_nerf"`에 저장된 Shell script (`main_cpu`, `main_0.sh`, `main_1.sh`)를 통해 `compress_nerf.py`를 실행합니다. (main_cpu, main_0, main_1은 코드를 실행하고자 하는 Device 별로 만들어 둔 것이며, CUDA_VISIBLE_DEVICES 설정 이외의 모든 동작은 동일합니다)
+2. `/nerf_lsa`에 저장된 Shell script (`main.sh`)를 통해 `compress_nerf.py`를 실행합니다.
    
 <br>
 
@@ -38,26 +45,24 @@
 
 set -e
 
-CKPT_PATH="/home/gbang/jihyoun/NeRF/test_nerf/model_zoo/llff_fern/fern_200000.tar"
-CKPT_NICKNAME='fern_200K'
-BASE_PATH_TO_SAVE='/home/gbang/jihyoun/NeRF/test_nerf/results'
+CKPT_PATH="model_zoo/blender_paper_lego/lego_200000.tar"
+CKPT_NICKNAME='lego_200K'
+BASE_PATH_TO_SAVE='.'
 DATASET_PATH='~'
 
-cd /home/gbang/jihyoun/NeRF/test_nerf
-
-CUDA_VISIBLE_DEVICES=0 python /home/gbang/jihyoun/NeRF/test_nerf/compress_nerf.py \
+CUDA_VISIBLE_DEVICES=0 python compress_nerf.py \
     --ckpt_path $CKPT_PATH \
     --ckpt_nickname $CKPT_NICKNAME \
     --base_path_to_save $BASE_PATH_TO_SAVE \
-    --qp -15 \
+    --qp -20 \
     --lsa True \
     --epochs 2 \
     --learning_rate 0.0001 \
     --task_type NeRF \
     --dataset_type llff \
-    --N_iters 5 \
+    --N_iters 50001 \
     --learning_rate_decay 0.1 \
-    --i_save 10 \
+    --i_save 50000 \
     --dataset_path $DATASET_PATH
 ```
 
@@ -132,7 +137,7 @@ CUDA_VISIBLE_DEVICES=0 python /home/gbang/jihyoun/NeRF/test_nerf/compress_nerf.p
 ### **이미지 및 비디오 파일**
 
 각 N_iter마다 이미지 및 비디오 파일이 저장되며, 이미지 파일의 경우에는 testset_step000에, 해당 이미지들을 엮은 비디오 파일의 경우에는 /movies 안에 iteration 별로 저장되어 있습니다.  
-현재는 rgb만 저장되게 설정되어 있으며, disp 정보도 저장하고자 하는 경우에는 `/home/gbang/anaconda3/envs/nnc/lib/python3.11/site-packages/framework/nerf_model/run_nerf.py` 의 train() 함수 하단에서 코드를 수정해 주시면 됩니다.
+현재는 rgb만 저장되게 설정되어 있으며, disp 정보도 저장하고자 하는 경우에는 `nerf_lsa/framework/nerf_model/run_nerf.pyy` 의 train() 함수 하단에서 코드를 수정해 주시면 됩니다.
 
 <br>
 
@@ -156,7 +161,7 @@ LSA parameter 학습 과정에서의 중간 결과가 저장된 파일입니다.
 
 모델의 매 iteration마다의 성능을 기록한 파일이며, PSNR과 loss를 포함합니다.
 
-해당 파일은 `"/home/gbang/jihyoun/NeRF/test_nerf/grapher.ipynb"` 를 통해 그래프를 그릴 수 있습니다.
+해당 파일은 `grapher.ipynb` 를 통해 그래프를 그릴 수 있습니다.
 
 <br>
 
@@ -772,4 +777,43 @@ def train(nerf_wrapper, basedir_save, basedir, datadir, i_save, N_iters,
             loss.backward()
             nerf_wrapper.tuning_optimizer.step()
             nerf_wrapper.tuning_optimizer.zero_grad()
+```
+
+<br>
+
+마지막으로 `framework/applications/utils/transforms.py` 의 ScaledLinear.forward() 함수가 수정되어 있습니다.  
+해당 함수는 기존 모델에 존재하는 nn.Linear 모듈에 LSA parameter를 추가하여 ScaledLinear라는 custom class로 변환하는 역할을 합니다.  
+이때 기존 코드는 forward() 함수가 호출될 때 weight, bias, weight_scaling parameter를 nn.Parameter의 instance로 선언하는데, NeRF에서 model forward를 여러번 호출하는 경우 각 parameter들이 nn.Parameter로 여러 번 wrapping되어 학습이 제대로 되지 않는 문제가 발생합니다. (nn.Parameter(nn.Parameter(...)) 처럼 되어버리는 문제).  
+따라서 해당 부분을 주석처리하였습니다.
+
+
+```python
+# Inner class of LSA.update_linear
+class ScaledLinear(nn.Linear):
+    def __init__(self, in_features, out_features, *args, **kwargs):
+        super().__init__(in_features, out_features, *args, **kwargs)
+        
+        """ < weight_scaling >
+        Initialize weight parameter which sized out_features x 1
+        Which means, there is one weight_scaling parameter per each output node.
+        i.e. if nn.Linear has 10 inputs and 5 outputs, then there are 5 weight_scaling parameters
+        which mean, each 10 weights share single weight_scaling parameter.
+        """
+        self.weight_scaling = nn.Parameter(torch.ones_like(torch.Tensor(out_features, 1)))
+        self.reset_parameters()
+
+    def reset_parameters(self):
+        # The if condition is added so that the super call in init does not reset_parameters as well.
+            if hasattr(self, 'weight_scaling'):
+                nn.init.normal_(self.weight_scaling, 1, 1e-5)
+                super().reset_parameters()
+                
+    # nn.Linear automatically returns result of forward() when called
+    def forward(self, input):
+        
+        # self.weight = nn.Parameter(self.weight)
+        # self.bias = nn.Parameter(self.bias)
+        # self.weight_scaling = nn.Parameter(self.weight_scaling)
+
+        return F.linear(input, self.weight_scaling * self.weight, self.bias)
 ```
