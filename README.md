@@ -25,12 +25,11 @@
 4. `/results` : 결과값을 저장하는 백업 폴더입니다. compress_nerf.py의 `base_path_to_save` 변수를 해당 폴더로 지정하는 경우, `/results` 폴더에 자동으로 저장됩니다.
 5. `utils.py` : NNCodec에 NeRF 모델을 입력하기 전과 후 과정에, 모델 구조 변환 및 기타 역할을 수행하는 모듈입니다.
 
-추가로 NeRF 폴더에 존재하는 nerf-pytorch 코드는 github에 존재하는 nerf-pytorch 원본 코드이며, nerf_lsa를 통해 생성된 모델을 입력하여 원활하게 동작하는지를 확인하기 위해 사용됩니다.
-
 <br>
 
 **메인 코드는 `compress_nerf.py` 이며, 이를 실행하는 방법은 다음과 같습니다.**
 
+1. 용량 문제로 인해 framework/nerf_model/data 폴더가 비어 있습니다. 해당 데이터를 내려받기 위해 download_nerf_data.sh를 실행합니다.
 1. `conda activate nnc`를 통해 가상환경을 활성화합니다.  
 2. `/nerf_lsa`에 저장된 Shell script (`main.sh`)를 통해 `compress_nerf.py`를 실행합니다.
    
